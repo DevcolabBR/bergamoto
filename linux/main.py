@@ -16,9 +16,9 @@ photo_window_open = False
 lock = threading.Lock()
 
 def create_table():
-    db_path = os.path.join('/home/br4b0/Desktop/novo_lar/bergamoto/data', 'bergamoto.db')
-    if not os.path.exists('/home/br4b0/Desktop/novo_lar/bergamoto/data'):
-        os.makedirs('/home/br4b0/Desktop/novo_lar/bergamoto/data')
+    db_path = os.path.join('/home/br4b0/Desktop/foss/DevcolabBR/bergamoto/data/', 'bergamoto.db')
+    if not os.path.exists('/home/br4b0/Desktop/foss/DevcolabBR/bergamoto/data/'):
+        os.makedirs('/home/br4b0/Desktop/foss/DevcolabBR/bergamoto/data/')
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS horarios
@@ -36,7 +36,7 @@ def create_table():
 def insert_record(name, pin, timestamp, photo_blob, setor, supervisor):
     date = timestamp.strftime("%d-%m-%Y")
     time = timestamp.strftime("%H:%M:00")
-    db_path = os.path.join('/home/br4b0/Desktop/novo_lar/bergamoto/data', 'bergamoto.db')
+    db_path = os.path.join('/home/br4b0/Desktop/foss/DevcolabBR/bergamoto/data/', 'bergamoto.db')
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
     
@@ -149,7 +149,7 @@ def main():
     create_table()
     employees = {}
 
-    csv_path = 'data/people.csv'
+    csv_path = '/home/br4b0/Desktop/foss/DevcolabBR/bergamoto/data/people.csv'
     if not os.path.exists(csv_path):
         print(f"Arquivo {csv_path} não encontrado.")
         return
