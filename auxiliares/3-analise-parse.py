@@ -90,6 +90,10 @@ if (df.groupby(['pin', 'date'])['time'].transform('count') == 4).any():
     # Create a new DataFrame with the relevant columns
     df_horas_trabalhadas = df[['pin', 'date', 'horas_trabalhadas']].drop_duplicates().reset_index(drop=True)
 
+
+#%%
+df_horas_trabalhadas
+df
 #%%
 df_horas_trabalhadas[df_horas_trabalhadas['pin']=='4551']
 

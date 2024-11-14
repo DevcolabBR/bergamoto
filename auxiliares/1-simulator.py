@@ -59,7 +59,7 @@ def is_weekday(date):
     br_holidays = holidays.Brazil(state='PA', observed=False)
     return date.weekday() < 5 and date not in br_holidays
 
-# Gerar dados para 20 funcionários
+# Gerar dados para 30 funcionários
 existing_pins = set()
 start_date = datetime(2024, 1, 1)
 
