@@ -1,15 +1,36 @@
+#%%
 import sqlite3
 import random
 import os
 from datetime import datetime, timedelta
 import holidays
+import platform
 
+#%%
+
+def get_os_type():
+    os_name = platform.system()
+    if os_name == "Linux":
+        return "Linux", "data/bergamoto.db"
+    elif os_name == "Darwin":
+        return "Mac", "data/bergamoto.db"
+    elif os_name == "Windows":
+        return "Windows", r"data\bergamoto.db"
+    elif os_name == "Java" and "android" in platform.platform().lower():
+        return "Android", "data/bergamoto.db"
+    else:
+        return "Unknown", "data/bergamoto.db"
+
+os_type, db_path = get_os_type()
+print(os_type)
+
+#%%
 # Verificar se o diretório 'data' existe, caso contrário, criar
 if not os.path.exists('data'):
     os.makedirs('data')
 
 # Conectar ao banco de dados (o arquivo será criado se não existir)
-conn = sqlite3.connect('data/bergamoto.db')
+conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
 # Criar a tabela se não existir
