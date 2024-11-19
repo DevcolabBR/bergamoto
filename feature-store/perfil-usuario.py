@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import ttk
 
 # Conectar ao banco de dados SQLite e carregar dados em um DataFrame pandas
-conn = sqlite3.connect("C:/bergamoto/data/bergamoto.db")
+conn = sqlite3.connect("bergamoto/data/bergamoto.db")
 df = pd.read_sql_query("SELECT * FROM horarios", conn)
 conn.close()
 

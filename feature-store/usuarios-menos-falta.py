@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import sqlite3
 #%%
-conn = sqlite3.connect("C:/bergamoto/data/bergamoto.db")
+conn = sqlite3.connect("/home/br4b0/Desktop/foss/DevcolabBR/bergamoto-novo-lar/bergamoto/data/bergamoto.db")
 df = pd.read_sql_query("SELECT * FROM horarios", conn)
 conn.close()
 # %%

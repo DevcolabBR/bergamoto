@@ -3,7 +3,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import sqlite3
-conn = sqlite3.connect("C:/bergamoto/data/bergamoto.db")
+conn = sqlite3.connect("/home/br4b0/Desktop/foss/DevcolabBR/bergamoto-novo-lar/bergamoto/data/bergamoto.db")
 df = pd.read_sql_query("SELECT * FROM horarios", conn)
 conn.close()
 # Filtrar usuários com 4 registros no mesmo dia
@@ -35,9 +35,16 @@ terceiro_registro_por_usuario['time'] = pd.to_datetime(terceiro_registro_por_usu
 quarto_registro_por_usuario['time'] = pd.to_datetime(quarto_registro_por_usuario['time'], format='%H:%M:%S').dt.time
 
 # Visualizar os resultados
+#%%
 primeiro_registro_por_usuario
+
+#%%
 segundo_registro_por_usuario
+
+#%%
 terceiro_registro_por_usuario
+
+#%%
 quarto_registro_por_usuario
 
 # %% 

@@ -26,8 +26,10 @@ CREATE TABLE IF NOT EXISTS horarios (
 
 # Função para gerar um nome aleatório
 def generate_name():
-    first_names = ["Alice", "Bob", "Charlie", "David", "Eva", "Frank", "Grace", "Hannah", "Isaac", "Julia"]
-    last_names = ["Smith", "Johnson", "Williams", "Jones", "Brown", "Davis", "Miller", "Wilson", "Moore", "Taylor"]
+    first_names = ["Ana", "Bruno", "Carlos", "Daniela", "Eduardo", "Fernanda", "Gabriel", "Helena", "Igor", "Juliana",
+                   "Larissa", "Marcos", "Nina", "Otávio", "Paula", "Rafael", "Sofia", "Thiago", "Vanessa", "Yuri"]
+    last_names = ["Silva", "Santos", "Oliveira", "Souza", "Lima", "Pereira", "Costa", "Ferreira", "Rodrigues", "Almeida",
+                  "Nascimento", "Araújo", "Melo", "Barbosa", "Ribeiro", "Martins", "Carvalho", "Rocha", "Dias", "Moreira"]
     return f"{random.choice(first_names)} {random.choice(last_names)}"
 
 # Função para gerar um PIN único
@@ -59,7 +61,19 @@ def is_weekday(date):
     br_holidays = holidays.Brazil(state='PA', observed=False)
     return date.weekday() < 5 and date not in br_holidays
 
-# Gerar dados para 20 funcionários
+# Função para gerar um produto aleatório
+def generate_product():
+    products = ["Televisão", "Geladeira", "Fogão", "Microondas", "Máquina de Lavar", "Notebook", "Smartphone", "Tablet",
+                "Câmera", "Fone de Ouvido", "Smartwatch", "Bicicleta", "Patinete Elétrico", "Tênis", "Bolsa", "Relógio",
+                "Perfume", "Livro", "Brinquedo", "Jogo de Videogame", "Console", "Mochila", "Cafeteira", "Liquidificador",
+                "Ventilador", "Ar Condicionado", "Aspirador de Pó", "Secador de Cabelo", "Churrasqueira", "Drone"]
+    categories = ["Eletrodomésticos", "Eletrônicos", "Moda", "Beleza", "Esportes", "Brinquedos", "Livros", "Games", "Casa"]
+    product = random.choice(products)
+    category = random.choice(categories)
+    unit_value = round(random.uniform(50.0, 5000.0), 2)
+    return product, category, unit_value
+
+# Gerar dados para 30 funcionários
 existing_pins = set()
 start_date = datetime(2024, 1, 1)
 
@@ -105,7 +119,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
     pin TEXT,
     name TEXT,
     setor TEXT,
-    creation_date TEXT
+    creation_date TEXT,
+    metas TEXT
 )
 ''')
 
@@ -120,9 +135,44 @@ def generate_random_date_2024():
 for name, pin, setor in employees:
     creation_date = generate_random_date_2024()
     cursor.execute('''
-    INSERT INTO usuarios (pin, name, setor, creation_date)
-    VALUES (?, ?, ?, ?)
-    ''', (pin, name, setor, creation_date))
+    INSERT INTO usuarios (pin, name, setor, creation_date, metas)
+    VALUES (?, ?, ?, ?, ?)
+    ''', (pin, name, setor, creation_date, ""))
+
+# Criar a tabela de vendas se não existir
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS vendas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pin TEXT,
+    name TEXT,
+    desconto TEXT,
+    produto TEXT,
+    categoria TEXT,
+    valor_unitario REAL,
+    data TEXT,
+    time TEXT
+)
+''')
+
+# Inserir dados na tabela de vendas para os funcionários do setor 'vendas'
+current_date = start_date
+while current_date.year == 2024:
+    if is_weekday(current_date):
+        date = current_date.strftime('%d-%m-%Y')
+        
+        for name, pin, setor in employees:
+            if setor == 'vendas':
+                # Gerar de 1 a 5 registros de vendas por dia
+                num_sales = random.randint(1, 5)
+                for _ in range(num_sales):
+                    time = generate_time(8, 3)  # Horários entre 8 AM e 19 PM
+                    product, category, unit_value = generate_product()
+                    cursor.execute('''
+                    INSERT INTO vendas (pin, name, desconto, produto, categoria, valor_unitario, data, time)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (pin, name, "", product, category, unit_value, date, time))
+    
+    current_date += timedelta(days=1)
 
 # Salvar as mudanças e fechar a conexão
 conn.commit()
