@@ -1,3 +1,6 @@
+from operator import index
+from tkinter import N
+from narwhals import col
 import pandas as pd
 import sqlite3
 
@@ -30,3 +33,27 @@ merged = pd.merge(all_combinations, df[['pin', 'date']], on=['pin', 'date'], how
 df_faltaram = merged[merged['_merge'] == 'left_only'].drop('_merge', axis=1)
 df_faltaram.rename(columns={'date': 'dia-falta'}, inplace=True)
 df_faltaram.to_csv('../output/faltas.csv', index=False)
+
+#%%
+import pandas as pd
+
+#%%
+df = pd.read_csv('/home/br4b0/Desktop/foss/DevcolabBR/bergamoto/output/faltas.csv')
+# %%
+df
+
+#%%
+
+pin_values = df['pin'].value_counts().head(10)
+pin_values
+
+# %%
+pin_values = df['pin'].value_counts().head(10).index.tolist()
+pin_values
+
+# %%
+top10_faltas = df[df['pin'].isin(pin_values)].drop_duplicates('pin')
+# %%
+colunas_target = ['pin', 'name', 'setor']
+top10_faltas[colunas_target].reset_index(drop=True)
+# %%

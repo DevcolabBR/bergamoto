@@ -44,15 +44,14 @@ def start(mensagem):
     chat_id = mensagem.chat.id
     comandos = [
         "/falta - exibir faltas",
-        "/query - lista as querys",
-        "/comando3 - Adicionar arquivos CSV ao banco de dados"
+        "/status_day - lista as querys",
+        "/clear - limpa a conversa"
     ]
     resposta = "Olá! Bem-vindo ao bot. Aqui estão os comandos disponíveis:\n" + "\n".join(comandos)
     bot.send_message(chat_id, ascii_art)
     bot.send_message(chat_id, resposta)
     
-
-# Função para receber e salvar tabelas CSV enviadas pelo usuário
+# Função para exibir as faltas
 @bot.message_handler(commands=['falta'])
 def executar_notific_faltas(mensagem):
     chat_id = mensagem.chat.id
@@ -60,6 +59,17 @@ def executar_notific_faltas(mensagem):
         # Executar o script notific-faltas.py e capturar a saída
         output = os.popen('python3 /home/br4b0/Desktop/foss/DevcolabBR/bergamoto/bot/notific-faltas.py').read()
         bot.send_message(chat_id, f"Saída do script notific-faltas.py:\n{output}")
+    except Exception as e:
+        bot.send_message(chat_id, f"Erro ao executar o script notific-faltas.py: {str(e)}")
+
+
+@bot.message_handler(commands=['status_day'])
+def executar_notific_status_day(mensagem):
+    chat_id = mensagem.chat.id
+    try:
+        
+        output = os.popen('python3 /home/br4b0/Desktop/foss/DevcolabBR/bergamoto/feature-store/status_day.py').read()
+        bot.send_message(chat_id, f"Saída:\n{output}")
     except Exception as e:
         bot.send_message(chat_id, f"Erro ao executar o script notific-faltas.py: {str(e)}")
 
