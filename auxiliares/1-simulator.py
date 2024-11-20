@@ -82,13 +82,40 @@ def is_weekday(date):
 
 # Função para gerar um produto aleatório
 def generate_product():
-    products = ["Televisão", "Geladeira", "Fogão", "Microondas", "Máquina de Lavar", "Notebook", "Smartphone", "Tablet",
-                "Câmera", "Fone de Ouvido", "Smartwatch", "Bicicleta", "Patinete Elétrico", "Tênis", "Bolsa", "Relógio",
-                "Perfume", "Livro", "Brinquedo", "Jogo de Videogame", "Console", "Mochila", "Cafeteira", "Liquidificador",
-                "Ventilador", "Ar Condicionado", "Aspirador de Pó", "Secador de Cabelo", "Churrasqueira", "Drone"]
-    categories = ["Eletrodomésticos", "Eletrônicos", "Moda", "Beleza", "Esportes", "Brinquedos", "Livros", "Games", "Casa"]
-    product = random.choice(products)
-    category = random.choice(categories)
+    product_category_map = {
+        "Televisão": "Eletrônicos",
+        "Geladeira": "Eletrodomésticos",
+        "Fogão": "Eletrodomésticos",
+        "Microondas": "Eletrodomésticos",
+        "Máquina de Lavar": "Eletrodomésticos",
+        "Notebook": "Eletrônicos",
+        "Smartphone": "Eletrônicos",
+        "Tablet": "Eletrônicos",
+        "Câmera": "Eletrônicos",
+        "Fone de Ouvido": "Eletrônicos",
+        "Smartwatch": "Eletrônicos",
+        "Bicicleta": "Esportes",
+        "Patinete Elétrico": "Esportes",
+        "Tênis": "Moda",
+        "Bolsa": "Moda",
+        "Relógio": "Moda",
+        "Perfume": "Beleza",
+        "Livro": "Livros",
+        "Brinquedo": "Brinquedos",
+        "Jogo de Videogame": "Games",
+        "Console": "Games",
+        "Mochila": "Moda",
+        "Cafeteira": "Casa",
+        "Liquidificador": "Casa",
+        "Ventilador": "Casa",
+        "Ar Condicionado": "Casa",
+        "Aspirador de Pó": "Casa",
+        "Secador de Cabelo": "Beleza",
+        "Churrasqueira": "Casa",
+        "Drone": "Eletrônicos"
+    }
+    product = random.choice(list(product_category_map.keys()))
+    category = product_category_map[product]
     unit_value = round(random.uniform(50.0, 5000.0), 2)
     return product, category, unit_value
 
