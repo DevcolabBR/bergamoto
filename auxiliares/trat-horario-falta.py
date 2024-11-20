@@ -92,7 +92,7 @@ plt.legend()
 plt.grid(True)
 plt.tight_layout()
 plt.show()
-#%%
+
 
 #%%
 # Ordena os horários em ordem crescente
