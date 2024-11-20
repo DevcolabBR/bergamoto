@@ -16,8 +16,6 @@ def get_os_type():
         return "Mac", "data/bergamoto.db"
     elif os_name == "Windows":
         return "Windows", r"data\bergamoto.db"
-    elif os_name == "Java" and "android" in platform.platform().lower():
-        return "Android", "data/bergamoto.db"
     else:
         return "Unknown", "data/bergamoto.db"
 
