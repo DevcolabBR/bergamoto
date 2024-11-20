@@ -117,6 +117,25 @@ def generate_products():
         products.append((product_name, category, unit_value, stock))
     return products
 
+# Criar a tabela fornecedores
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS fornecedores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL,
+    contato TEXT,
+    endereco TEXT
+)
+''')
+
+# Inserir fornecedores
+suppliers = [("Fornecedor A", "fornecedorA@example.com", "Endereço A"),
+             ("Fornecedor B", "fornecedorB@example.com", "Endereço B"),
+             ("Fornecedor C", "fornecedorC@example.com", "Endereço C")]
+cursor.executemany('''
+INSERT INTO fornecedores (nome, contato, endereco)
+VALUES (?, ?, ?)
+''', suppliers)
+
 # Criar a tabela produtos
 cursor.execute('''
 CREATE TABLE IF NOT EXISTS produtos (
@@ -124,16 +143,20 @@ CREATE TABLE IF NOT EXISTS produtos (
     nome TEXT,
     categoria TEXT,
     valor_unitario REAL,
-    estoque INTEGER
+    estoque INTEGER,
+    fornecedor_id INTEGER,
+    FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)
 )
 ''')
 
 # Inserir produtos na tabela produtos
 product_list = generate_products()
-cursor.executemany('''
-INSERT INTO produtos (nome, categoria, valor_unitario, estoque)
-VALUES (?, ?, ?, ?)
-''', product_list)
+for product in product_list:
+    fornecedor_id = random.randint(1, len(suppliers))
+    cursor.execute('''
+    INSERT INTO produtos (nome, categoria, valor_unitario, estoque, fornecedor_id)
+    VALUES (?, ?, ?, ?, ?)
+    ''', (product[0], product[1], product[2], product[3], fornecedor_id))
 
 # Gerar dados para 30 funcionários
 existing_pins = set()
@@ -155,7 +178,8 @@ CREATE TABLE IF NOT EXISTS colaboradores (
     name TEXT,
     setor TEXT,
     creation_date TEXT,
-    metas TEXT
+    metas TEXT,
+    ponto_acumulado INTEGER DEFAULT 0
 )
 ''')
 
@@ -178,13 +202,14 @@ cursor.execute("SELECT id, pin FROM colaboradores")
 colaboradores_data = cursor.fetchall()
 pin_to_colaborador_id = {pin: id for id, pin in colaboradores_data}
 
-# Criar a tabela clientes
+# Criar a tabela clientes com programa de fidelidade
 cursor.execute('''
 CREATE TABLE IF NOT EXISTS clientes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nome TEXT,
     contato TEXT,
-    endereco TEXT
+    endereco TEXT,
+    pontos_fidelidade INTEGER DEFAULT 0
 )
 ''')
 
@@ -202,7 +227,19 @@ INSERT INTO clientes (nome, contato, endereco)
 VALUES (?, ?, ?)
 ''', client_list)
 
-# Criar a tabela pedidos
+# Criar a tabela pagamentos
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS pagamentos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pedido_id INTEGER,
+    metodo_pagamento TEXT,
+    valor REAL,
+    data TEXT,
+    FOREIGN KEY(pedido_id) REFERENCES pedidos(id)
+)
+''')
+
+# Criar a tabela pedidos com descontos
 cursor.execute('''
 CREATE TABLE IF NOT EXISTS pedidos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -210,12 +247,13 @@ CREATE TABLE IF NOT EXISTS pedidos (
     colaborador_id INTEGER,
     data TEXT,
     total REAL,
+    desconto REAL,
     FOREIGN KEY(cliente_id) REFERENCES clientes(id),
     FOREIGN KEY(colaborador_id) REFERENCES colaboradores(id)
 )
 ''')
 
-# Criar a tabela itens_pedido
+# Criar a tabela itens_pedido com descontos
 cursor.execute('''
 CREATE TABLE IF NOT EXISTS itens_pedido (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -223,6 +261,7 @@ CREATE TABLE IF NOT EXISTS itens_pedido (
     produto_id INTEGER,
     quantidade INTEGER,
     valor_unitario REAL,
+    desconto REAL,
     FOREIGN KEY(pedido_id) REFERENCES pedidos(id),
     FOREIGN KEY(produto_id) REFERENCES produtos(id)
 )
@@ -283,6 +322,7 @@ while current_date.year == 2024:
                     num_itens = random.randint(1, 5)
                     itens = []
                     total_pedido = 0.0
+                    desconto_pedido = round(random.uniform(0, 0.15), 2)  # Desconto de até 15%
                     for _ in range(num_itens):
                         produto_id = random.choice(produtos_ids)
                         # Obter informações do produto
@@ -293,25 +333,40 @@ while current_date.year == 2024:
                         if estoque <= 0:
                             continue  # Se não há estoque, não adiciona o produto
                         quantidade = random.randint(1, min(5, estoque))
-                        total_item = valor_unitario * quantidade
+                        desconto_item = round(random.uniform(0, 0.10), 2)  # Desconto de até 10% por item
+                        valor_com_desconto = valor_unitario * (1 - desconto_item)
+                        total_item = valor_com_desconto * quantidade
                         total_pedido += total_item
                         # Atualizar estoque
                         novo_estoque = estoque - quantidade
                         cursor.execute('UPDATE produtos SET estoque = ? WHERE id = ?', (novo_estoque, produto_id))
-                        itens.append((produto_id, quantidade, valor_unitario))
+                        itens.append((produto_id, quantidade, valor_unitario, desconto_item))
                     if itens:
+                        # Aplicar desconto do pedido
+                        total_pedido *= (1 - desconto_pedido)
                         # Inserir pedido
                         cursor.execute('''
-                        INSERT INTO pedidos (cliente_id, colaborador_id, data, total)
-                        VALUES (?, ?, ?, ?)
-                        ''', (cliente_id, colaborador_id, data_pedido, total_pedido))
+                        INSERT INTO pedidos (cliente_id, colaborador_id, data, total, desconto)
+                        VALUES (?, ?, ?, ?, ?)
+                        ''', (cliente_id, colaborador_id, data_pedido, total_pedido, desconto_pedido))
                         pedido_id = cursor.lastrowid
                         # Inserir itens do pedido
                         for item in itens:
                             cursor.execute('''
-                            INSERT INTO itens_pedido (pedido_id, produto_id, quantidade, valor_unitario)
-                            VALUES (?, ?, ?, ?)
-                            ''', (pedido_id, item[0], item[1], item[2]))
+                            INSERT INTO itens_pedido (pedido_id, produto_id, quantidade, valor_unitario, desconto)
+                            VALUES (?, ?, ?, ?, ?)
+                            ''', (pedido_id, item[0], item[1], item[2], item[3]))
+                        # Inserir pagamento
+                        metodo_pagamento = random.choice(['Dinheiro', 'Cartão de Crédito', 'Cartão de Débito', 'Pix'])
+                        cursor.execute('''
+                        INSERT INTO pagamentos (pedido_id, metodo_pagamento, valor, data)
+                        VALUES (?, ?, ?, ?)
+                        ''', (pedido_id, metodo_pagamento, total_pedido, data_pedido))
+                        # Atualizar pontos de fidelidade do cliente
+                        pontos = int(total_pedido // 50)  # 1 ponto a cada R$50
+                        cursor.execute('UPDATE clientes SET pontos_fidelidade = pontos_fidelidade + ? WHERE id = ?', (pontos, cliente_id))
+                        # Atualizar metas do colaborador
+                        cursor.execute('UPDATE colaboradores SET ponto_acumulado = ponto_acumulado + ? WHERE id = ?', (pontos, colaborador_id))
 
     current_date += timedelta(days=1)
 
@@ -319,6 +374,7 @@ while current_date.year == 2024:
 conn.commit()
 conn.close()
 
+#%%
 # Verificar e imprimir as datas de feriados
 feriados_brasil = holidays.Brazil(years=2024, subdiv='PA')
 
