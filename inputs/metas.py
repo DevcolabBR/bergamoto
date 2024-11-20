@@ -1,7 +1,6 @@
 #%%
 import sqlite3
 import os
-import pandas as pd
 import tkinter as tk
 from tkinter import simpledialog
 from tkinter import ttk
@@ -11,31 +10,22 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 db_path = os.path.join(current_dir, 'data', 'bergamoto.db')
 
 conn = sqlite3.connect(db_path)
-
 cursor = conn.cursor()
 
-cursor.execute("SELECT * FROM usuarios")
-
+cursor.execute("SELECT name, pin FROM usuarios WHERE setor = 'vendas'")
 rows = cursor.fetchall()
 
-df = pd.DataFrame(rows, columns=[desc[0] for desc in cursor.description])
-
-conn.close()
-
+user_list = [f"{row[0]} ({row[1]})" for row in rows]
 
 # %%
 def update_metas():
-    user_list = df[df['setor'] == 'vendas'][['name', 'pin']].apply(lambda x: f"{x['name']} ({x['pin']})", axis=1).tolist()
-    
-    def on_select(event):
+    def on_select():
         user_choice = combo.get()
         user_name = user_choice.split(' (')[0]
-        if user_name in df['name'].tolist():
-            index = df[df['name'] == user_name].index[0]
+        cursor.execute("SELECT name FROM usuarios WHERE name = ?", (user_name,))
+        if cursor.fetchone():
             new_meta = simpledialog.askinteger("Input", f"Adicione uma nova meta para:  {user_name}:")
             if new_meta is not None:
-                df.at[index, 'metas'] = new_meta
-                cursor = conn.cursor()
                 cursor.execute("UPDATE usuarios SET metas = ? WHERE name = ?", (new_meta, user_name))
                 conn.commit()
                 tk.messagebox.showinfo("Success", "Meta updated successfully")
@@ -52,12 +42,15 @@ def update_metas():
 
     tk.Label(top, text="Selecione um vendedor:").pack(pady=10)
     combo = ttk.Combobox(top, values=user_list)
+
     combo.pack(pady=10)
-    combo.bind("<<ComboboxSelected>>", on_select)
+    combo.bind("<<ComboboxSelected>>", lambda event: on_select())
 
     top.mainloop()
 
-update_metas()
-# %%
-
+try:
+    update_metas()
+except KeyboardInterrupt:
+    print("Programa encerrado pelo usuário.")
+    conn.close()
 # %%
