@@ -7,9 +7,6 @@ _No Brasil, dispositivos de ponto eletrônico precisam seguir as normas do Inmet
 
 **Avaliar o que pode ser útil:**
 
-
----
-
 ### **1. Lidar com Registros Incompletos ou Faltantes**
    - **Cenário**: O colaborador esquece de registrar um ponto (ex.: a saída para o almoço).
    - **Solução**:
