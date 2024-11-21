@@ -1,10 +1,12 @@
 # bergamoto
 
 ---
+_No Brasil, dispositivos de ponto eletrônico precisam seguir as normas do Inmetro e a Portaria 671/2021 do Ministério do Trabalho._
 
-#### Avaliar o que pode ser útil:
 
-Desenvolver um software robusto para registro de pontos envolve antecipar situações reais e prever maneiras de lidar com elas. Aqui estão algumas ideias para tornar seu software mais poderoso e confiável:
+
+**Avaliar o que pode ser útil:**
+
 
 ---
 
