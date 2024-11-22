@@ -82,11 +82,3 @@ plt.tight_layout()
 plt.show()
 # Exibir o número de presenças que cada usuário teve em cada mês
 #%%
-
-
-
-
-
-
-
-# %%
