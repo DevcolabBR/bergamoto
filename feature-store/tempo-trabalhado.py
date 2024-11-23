@@ -14,7 +14,6 @@ conn.close()
 usuarios_com_4_registros = df.groupby(['pin', 'date']).filter(lambda x: len(x) == 4)
 
 # Ordenar os resultados por data e hora
-
 usuarios_com_4_registros = usuarios_com_4_registros.sort_values(by=['date', 'time'])
 
 #%%
@@ -26,6 +25,40 @@ usuarios_com_4_registros
 # Aplicar a função ao DataFrame
 # Adicionar colunas 'name' e 'setor' ao DataFrame resultante
 def calcular_tempo_trabalhado(grupo):
+    """
+    Calcula o tempo total trabalhado por um grupo de registros de entrada e saída.
+
+    Parâmetros:
+    grupo (DataFrame): Um DataFrame contendo registros de tempo com colunas 'time', 'name' e 'setor'.
+                       O DataFrame deve conter pelo menos quatro registros de tempo para cada grupo.
+
+    Retorna:
+    pd.Series: Uma série contendo o tempo total trabalhado (em formato de string), o nome e o setor do grupo.
+
+    O que o código faz:
+    1. Ordena o DataFrame 'grupo' pela coluna 'time' em ordem crescente.
+    2. Converte os valores de tempo das quatro primeiras entradas do grupo para objetos datetime:
+       - entrada1: Hora de entrada do primeiro registro.
+       - saida1: Hora de saída do segundo registro.
+       - entrada2: Hora de entrada do terceiro registro.
+       - saida2: Hora de saída do quarto registro.
+    3. Calcula o tempo total trabalhado somando os intervalos de tempo entre entrada1-saida1 e entrada2-saida2.
+    4. Converte o tempo total trabalhado para string e remove a parte de '0 days' para obter apenas o tempo em horas, minutos e segundos.
+    5. Extrai o nome e o setor do primeiro registro do grupo.
+    6. Retorna uma série contendo o tempo total trabalhado, o nome e o setor.
+
+    Exemplo de uso:
+    >>> grupo = pd.DataFrame({
+    >>>     'time': ['2023-10-01 08:00:00', '2023-10-01 12:00:00', '2023-10-01 13:00:00', '2023-10-01 17:00:00'],
+    >>>     'name': ['João', 'João', 'João', 'João'],
+    >>>     'setor': ['Financeiro', 'Financeiro', 'Financeiro', 'Financeiro']
+    >>> })
+    >>> calcular_tempo_trabalhado(grupo)
+    tempo_trabalhado    08:00:00
+    name                    João
+    setor             Financeiro
+    dtype: object
+    """
     grupo = grupo.sort_values(by='time')
     entrada1 = pd.to_datetime(grupo.iloc[0]['time'])
     saida1 = pd.to_datetime(grupo.iloc[1]['time'])
@@ -68,7 +101,6 @@ tempo_trabalhado_df
 saldo_positivo_df = tempo_trabalhado_df[tempo_trabalhado_df['saldo'].apply(lambda x: not x.startswith('-'))]
 saldo_negativo_df = tempo_trabalhado_df[tempo_trabalhado_df['saldo'].apply(lambda x: x.startswith('-'))]
 
-
 saldo_positivo_df
 #%%
 saldo_negativo_df
@@ -103,8 +135,6 @@ saldo_final_negativo
 
 # %%
 # Mesclar os DataFrames de saldo positivo e negativo
-# Mesclar os DataFrames de saldo positivo e negativo
-saldo_final = pd.concat([saldo_final_positivo, saldo_final_negativo], ignore_index=True)
 saldo_final_positivo = saldo_final_positivo.rename(columns={'saldo': 'saldo_positivo'})
 saldo_final_negativo = saldo_final_negativo.rename(columns={'saldo': 'saldo_negativo'})
 
@@ -117,8 +147,6 @@ saldo_final
 
 # %%
 # Converter as colunas de saldo para Timedelta
-
-
 saldo_final['saldo_positivo_horas'] = saldo_final['saldo_positivo'].apply(lambda x: pd.Timedelta(x).total_seconds() / 3600)
 saldo_final['saldo_negativo_horas'] = saldo_final['saldo_negativo'].apply(lambda x: pd.Timedelta(x).total_seconds() / 3600)
 
