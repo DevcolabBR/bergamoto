@@ -2,8 +2,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import sqlite3
-import tkinter as tk
-from tkinter import ttk
+
 #%%
 # Conectar ao banco de dados SQLite e carregar dados em um DataFrame pandas
 conn = sqlite3.connect("/home/br4b0/Desktop/foss/DevcolabBR/bergamoto/data/bergamoto.db")
@@ -15,11 +14,6 @@ usuarios_com_4_registros = df.groupby(['pin', 'date']).filter(lambda x: len(x) =
 
 # Ordenar os resultados por data e hora
 usuarios_com_4_registros = usuarios_com_4_registros.sort_values(by=['date', 'time'])
-
-#%%
-usuarios_com_4_registros
-# %%
-usuarios_com_4_registros
 # Calcular a diferença de tempo para cada usuário por dia
 
 # Aplicar a função ao DataFrame
@@ -83,13 +77,6 @@ tempo_trabalhado_df
 tempo_trabalhado_df[tempo_trabalhado_df['pin'] == "1042"]
 # %%
 
-saldo_pos = tempo_trabalhado_df[(tempo_trabalhado_df['pin'] == "1042") & 
-                    (tempo_trabalhado_df['tempo_trabalhado'].apply(lambda x: pd.Timedelta(x).total_seconds() > 8 * 3600))]
-# %%
-saldo_neg = tempo_trabalhado_df[(tempo_trabalhado_df['pin'] == "1042") & 
-                    (tempo_trabalhado_df['tempo_trabalhado'].apply(lambda x: pd.Timedelta(x).total_seconds() < 8 * 3600))]
-# %%
-saldo_pos
 tempo_trabalhado_df['saldo'] = tempo_trabalhado_df['tempo_trabalhado'].apply(lambda x: (pd.Timedelta(x) - pd.Timedelta(hours=8)).total_seconds() / 3600)
 tempo_trabalhado_df['saldo'] = tempo_trabalhado_df['saldo'].apply(lambda x: str(pd.Timedelta(hours=x)).split(' ')[-1] if x >= 0 else '-' + str(pd.Timedelta(hours=abs(x))).split(' ')[-1])  # Convert to hh:mm:ss format
 
@@ -105,15 +92,17 @@ saldo_positivo_df
 #%%
 saldo_negativo_df
 # %%
+# PARA 1 MÊS (JANEIRO)
 mes_negativo = saldo_negativo_df[saldo_negativo_df['date'].str.contains("-01-2024")]
 mes_positivo = saldo_positivo_df[saldo_positivo_df['date'].str.contains("-01-2024")]
 # %%
 mes_positivo
+#%%
 mes_negativo
 # %%
 # Somar os valores do saldo para cada usuário no mês positivo
 mes_positivo['saldo'] = mes_positivo['saldo'].apply(lambda x: pd.Timedelta(x).total_seconds() / 3600)
-saldo_final_positivo = mes_positivo.groupby('pin')['saldo'].sum().reset_index()
+saldo_final_positivo = mes_positivo.groupby(['pin', 'name', 'setor'])['saldo'].sum().reset_index()
 
 # Converter o saldo final de volta para o formato hh:mm:ss
 saldo_final_positivo['saldo'] = saldo_final_positivo['saldo'].apply(lambda x: ':'.join(str(pd.Timedelta(hours=x)).split(' ')[-1].split(':')[:2] + [str(pd.Timedelta(hours=x)).split(' ')[-1].split(':')[2].split('.')[0]]))
@@ -124,7 +113,7 @@ saldo_final_positivo
 #%%
 # Somar os valores do saldo para cada usuário no mês negativo
 mes_negativo['saldo'] = mes_negativo['saldo'].apply(lambda x: -pd.Timedelta(x).total_seconds() / 3600)
-saldo_final_negativo = mes_negativo.groupby('pin')['saldo'].sum().reset_index()
+saldo_final_negativo = mes_negativo.groupby(['pin', 'name', 'setor'])['saldo'].sum().reset_index()
 
 # Converter o saldo final de volta para o formato hh:mm:ss
 saldo_final_negativo['saldo'] = saldo_final_negativo['saldo'].apply(lambda x: '-' + ':'.join(str(pd.Timedelta(hours=abs(x))).split(' ')[-1].split(':')[:2] + [str(pd.Timedelta(hours=abs(x))).split(' ')[-1].split(':')[2].split('.')[0]]))
@@ -139,11 +128,11 @@ saldo_final_positivo = saldo_final_positivo.rename(columns={'saldo': 'saldo_posi
 saldo_final_negativo = saldo_final_negativo.rename(columns={'saldo': 'saldo_negativo'})
 
 saldo_final = pd.merge(saldo_final_positivo, saldo_final_negativo, on='pin', how='outer')
-
+saldo_final = saldo_final.drop(columns=['name_y', 'setor_y'])
+saldo_final = saldo_final.rename(columns={'name_x': 'name', 'setor_x': 'setor'})
 print(saldo_final)
 # %%
 saldo_final
-# %%
 
 # %%
 # Converter as colunas de saldo para Timedelta
@@ -163,5 +152,31 @@ print(saldo_final[['pin', 'saldo_positivo_horas', 'saldo_negativo_horas', 'saldo
 # %%
 saldo_final
 # %%
-saldo_final[['pin', 'saldo_positivo', 'saldo_negativo', 'saldo_total']]
+saldo_final = saldo_final[['pin', 'name', 'setor' ,'saldo_positivo', 'saldo_negativo', 'saldo_total']]
+# %%
+saldo_final
+# %%
+saldo_final[saldo_final['setor']=='adm']
+
+
+#%%
+
+
+
+# Separar a análise pela coluna 'setor' e somar os valores da coluna 'saldo_total'
+saldo_por_setor = saldo_final.groupby('setor')['saldo_total'].apply(lambda x: pd.to_timedelta(x).sum()).reset_index()
+
+# Converter o saldo total para o formato hh:mm:ss, considerando valores negativos
+def format_timedelta(td):
+    total_seconds = td.total_seconds()
+    hours, remainder = divmod(abs(total_seconds), 3600)
+    minutes, seconds = divmod(remainder, 60)
+    sign = '-' if total_seconds < 0 else ''
+    return f"{sign}{int(hours):02}:{int(minutes):02}:{int(seconds):02}"
+
+saldo_por_setor['saldo_total'] = saldo_por_setor['saldo_total'].apply(format_timedelta)
+
+print(saldo_por_setor)
+# %%
+saldo_por_setor # conferido 👌
 # %%
