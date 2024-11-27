@@ -6,13 +6,12 @@ from tkinter import simpledialog
 from tkinter import ttk
 
 #%%
-current_dir = os.path.dirname(os.path.abspath(__file__))
-db_path = os.path.join(current_dir, 'data', 'bergamoto.db')
+db_path = '/home/br4b0/Desktop/foss/DevcolabBR/bergamoto/data/bergamoto.db'
 
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
-cursor.execute("SELECT name, pin FROM usuarios WHERE setor = 'vendas'")
+cursor.execute("SELECT name, pin FROM colaboradores WHERE setor = 'vendas'")
 rows = cursor.fetchall()
 
 user_list = [f"{row[0]} ({row[1]})" for row in rows]
@@ -22,11 +21,11 @@ def update_metas():
     def on_select():
         user_choice = combo.get()
         user_name = user_choice.split(' (')[0]
-        cursor.execute("SELECT name FROM usuarios WHERE name = ?", (user_name,))
+        cursor.execute("SELECT name FROM colaboradores WHERE name = ?", (user_name,))
         if cursor.fetchone():
             new_meta = simpledialog.askinteger("Input", f"Adicione uma nova meta para:  {user_name}:")
             if new_meta is not None:
-                cursor.execute("UPDATE usuarios SET metas = ? WHERE name = ?", (new_meta, user_name))
+                cursor.execute("UPDATE colaboradores SET metas = ? WHERE name = ?", (new_meta, user_name))
                 conn.commit()
                 tk.messagebox.showinfo("Success", "Meta updated successfully")
             else:
