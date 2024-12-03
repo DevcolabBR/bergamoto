@@ -1,3 +1,4 @@
+#%%
 from operator import index
 from tkinter import N
 from narwhals import col
@@ -13,20 +14,24 @@ FROM horarios
 df = pd.read_sql_query(query, conn)
 
 #  QUEM FALTOU:
+#%%
 
-query_usuarios = "SELECT pin, name, setor FROM usuarios"
-df_usuarios = pd.read_sql_query(query_usuarios, conn)
-df_usuarios
+df['date'].__contains__('02-2024')
+
+#%%
+query_colaboradores = "SELECT pin, name, setor FROM colaboradores"
+df_colaboradores = pd.read_sql_query(query_colaboradores, conn)
+df_colaboradores
 
 # Verifica quem faltou
 # Converte a coluna 'date' para o tipo datetime para facilitar a comparação
 df['date'] = pd.to_datetime(df['date'], format='%d-%m-%Y')
-df_usuarios['key'] = 1
+df_colaboradores['key'] = 1
 unique_dates = pd.DataFrame(df['date'].unique(), columns=['date'])
 unique_dates['key'] = 1
 
 # Cria um DataFrame com todas as combinações possíveis de usuários e datas
-all_combinations = pd.merge(df_usuarios, unique_dates, on='key').drop('key', axis=1)
+all_combinations = pd.merge(df_colaboradores, unique_dates, on='key').drop('key', axis=1)
 
 # Faz um merge com o DataFrame original para encontrar as combinações que não existem
 merged = pd.merge(all_combinations, df[['pin', 'date']], on=['pin', 'date'], how='left', indicator=True)
