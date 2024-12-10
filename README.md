@@ -1,6 +1,8 @@
 # bergamoto
 
 ---
+## anotações, etc
+
 _No Brasil, dispositivos de ponto eletrônico precisam seguir as normas do Inmetro e a Portaria 671/2021 do Ministério do Trabalho._
 
 
