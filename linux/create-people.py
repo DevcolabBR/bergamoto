@@ -26,9 +26,9 @@ def generate_person():
 
 if __name__ == "__main__":
     # Ensure the data directory exists
-    os.makedirs('/home/br4b0/Desktop/foss/DevcolabBR/bergamoto/data', exist_ok=True)
-    
-    with open('/home/br4b0/Desktop/foss/DevcolabBR/bergamoto/data/people.csv', mode='w', newline='', encoding='utf-8') as file:
+    os.makedirs('/home/br4b0/Desktop/devcolab/bergamoto/data', exist_ok=True)
+
+    with open('/home/br4b0/Desktop/devcolab/bergamoto/data/people.csv', mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow(["name", "pin", "setor", "supervisor"])
         people = []
@@ -42,7 +42,7 @@ if __name__ == "__main__":
             people.append((name, code, department, supervisor))
     
     # Connect to the database (it will be created if it doesn't exist)
-    conn = sqlite3.connect('/home/br4b0/Desktop/novo_lar/bergamoto/data/bergamoto.db')
+    conn = sqlite3.connect('/home/br4b0/Desktop/devcolab/bergamoto/data/bergamoto.db')
     cursor = conn.cursor()
 
     # Create the table if it doesn't exist

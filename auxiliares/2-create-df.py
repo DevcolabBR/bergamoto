@@ -4,7 +4,9 @@ import pandas as pd
 import os
 
 # Caminho para o banco de dados
-db_path = os.path.join('data', 'bergamoto.db')
+# Obter o caminho absoluto para o diretório raiz do projeto
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+db_path = os.path.join(project_root, 'data', 'bergamoto.db')
 
 # Conectar ao banco de dados
 conn = sqlite3.connect(db_path)
@@ -39,6 +41,6 @@ if 'photo' in df_horarios.columns:
 # Garantir que a coluna 'pin' seja tratada como texto
 df_horarios['pin'] = df_horarios['pin'].astype(str)
 
-# Salvar o DataFrame em um arquivo CSV com codificação UTF-8
-csv_path = os.path.join('data', 'horarios-ds.csv')
+# Também corrigir o caminho para salvar o CSV
+csv_path = os.path.join(project_root, 'data', 'horarios-ds.csv')
 df_horarios.to_csv(csv_path, index=False, encoding='utf-8')

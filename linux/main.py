@@ -12,47 +12,107 @@ import csv
 import os
 from ttkthemes import ThemedTk
 
+# Configuração de caminhos
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+DATA_DIR = os.path.join(PROJECT_ROOT, 'data')
+DB_PATH = os.path.join(DATA_DIR, 'bergamoto.db')
+PEOPLE_CSV_PATH = os.path.join(DATA_DIR, 'people.csv')
+
 photo_window_open = False
 lock = threading.Lock()
 
 def create_table():
-    db_path = os.path.join('/home/br4b0/Desktop/novo_lar/bergamoto/data', 'bergamoto.db')
-    if not os.path.exists('/home/br4b0/Desktop/novo_lar/bergamoto/data'):
-        os.makedirs('/home/br4b0/Desktop/novo_lar/bergamoto/data')
-    conn = sqlite3.connect(db_path)
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS horarios
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  name TEXT,
-                  pin TEXT, 
-                  date TEXT,
-                  time TEXT,
-                  photo BLOB,
-                  setor TEXT,
-                  supervisor TEXT)''')
-    conn.commit()
-    conn.close()
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR)
+    
+    conn = None
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        # Não vamos recriar a tabela, pois ela já existe com um esquema diferente
+        # apenas verificar se existe
+        c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='horarios'")
+        if not c.fetchone():
+            # Se a tabela não existir, criamos com o esquema atual da base
+            c.execute('''CREATE TABLE IF NOT EXISTS horarios
+                       (id INTEGER PRIMARY KEY,
+                        pin TEXT,
+                        nome TEXT,
+                        data TEXT,
+                        entrada TEXT,
+                        saida TEXT,
+                        horas_trabalhadas REAL)''')
+            conn.commit()
+    except sqlite3.Error as e:
+        messagebox.showerror("Erro de Banco de Dados", f"Erro ao verificar tabela: {e}")
+    finally:
+        if conn:
+            conn.close()
 
 def insert_record(name, pin, timestamp, photo_blob, setor, supervisor):
-    date = timestamp.strftime("%d-%m-%Y")
-    time = timestamp.strftime("%H:%M:00")
-    db_path = os.path.join('/home/br4b0/Desktop/novo_lar/bergamoto/data', 'bergamoto.db')
-    conn = sqlite3.connect(db_path)
-    c = conn.cursor()
+    data = timestamp.strftime("%d-%m-%Y")
+    hora = timestamp.strftime("%H:%M:00")
     
-    c.execute("SELECT COUNT(*) FROM horarios WHERE pin = ? AND date = ?", (pin, date))
-    record_count = c.fetchone()[0]
-    
-    if record_count >= 4:
-        messagebox.showwarning("Limite Atingido", "Você já fez 4 registros hoje.")
-        conn.close()
-        return False
+    conn = None
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        
+        # Verificar número de registros existentes
+        c.execute("SELECT COUNT(*) FROM horarios WHERE pin = ? AND data = ?", (pin, data))
+        record_count = c.fetchone()[0]
+        
+        if record_count >= 4:
+            messagebox.showwarning("Limite Atingido", "Você já fez 4 registros hoje.")
+            return False
 
-    c.execute("INSERT INTO horarios (name, pin, date, time, photo, setor, supervisor) VALUES (?, ?, ?, ?, ?, ?, ?)", 
-              (name, pin, date, time, photo_blob, setor, supervisor))
-    conn.commit()
-    conn.close()
-    return True
+        # Determinar se é entrada ou saída com base no número de registros
+        # Nós alternamos entre entrada/saída baseado no número de registros do dia
+        tipo_registro = "entrada" if record_count % 2 == 0 else "saida"
+        
+        if tipo_registro == "entrada":
+            # Inserir registro de entrada
+            c.execute("INSERT INTO horarios (pin, nome, data, entrada) VALUES (?, ?, ?, ?)", 
+                    (pin, name, data, hora))
+        else:
+            # Buscar o último registro sem saída para este PIN e data
+            c.execute("""
+                SELECT id, entrada FROM horarios 
+                WHERE pin = ? AND data = ? AND saida IS NULL 
+                ORDER BY id DESC LIMIT 1
+            """, (pin, data))
+            
+            resultado = c.fetchone()
+            if resultado:
+                registro_id, hora_entrada = resultado
+                # Calcular horas trabalhadas
+                fmt = "%H:%M:%S"
+                entrada_dt = datetime.datetime.strptime(hora_entrada, fmt)
+                saida_dt = datetime.datetime.strptime(hora, fmt)
+                
+                # Calcular a diferença em horas
+                diferenca = (saida_dt - entrada_dt).total_seconds() / 3600
+                
+                # Atualizar o registro com a saída e horas trabalhadas
+                c.execute("""
+                    UPDATE horarios SET saida = ?, horas_trabalhadas = ?
+                    WHERE id = ?
+                """, (hora, diferenca, registro_id))
+            else:
+                # Se não encontrar entrada correspondente, criar um novo registro
+                c.execute("INSERT INTO horarios (pin, nome, data, saida) VALUES (?, ?, ?, ?)", 
+                        (pin, name, data, hora))
+        
+        conn.commit()
+        return True
+    except sqlite3.Error as e:
+        if conn:
+            conn.rollback()
+        messagebox.showerror("Erro de Banco de Dados", f"Erro ao inserir registro: {e}")
+        return False
+    finally:
+        if conn:
+            conn.close()
 
 def capture_photo():
     global photo_window_open
@@ -60,31 +120,42 @@ def capture_photo():
 
     def take_photo():
         nonlocal img_blob
-        ret, frame = cam.read()
-        if ret:
-            img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-            with io.BytesIO() as output:
-                img.save(output, format="PNG")
-                img_blob = output.getvalue()
-            messagebox.showinfo("Captura de Foto", "Foto capturada")
-            cam.release()
+        try:
+            ret, frame = cam.read()
+            if ret:
+                img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                with io.BytesIO() as output:
+                    img.save(output, format="PNG")
+                    img_blob = output.getvalue()
+                messagebox.showinfo("Captura de Foto", "Foto capturada")
+            else:
+                messagebox.showerror("Erro", "Falha ao capturar a imagem")
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro durante a captura: {e}")
+        finally:
+            # Garantir que a câmera sempre seja liberada
+            if cam.isOpened():
+                cam.release()
             cv2.destroyAllWindows()
-            root.quit()
-        else:
-            messagebox.showerror("Erro", "Falha ao capturar a imagem")
+            if root.winfo_exists():
+                root.quit()
 
     def show_frame():
         if not cam.isOpened() or not root.winfo_exists():
             return
-        ret, frame = cam.read()
-        if ret:
-            cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
-            img = Image.fromarray(cv2image)
-            imgtk = ImageTk.PhotoImage(image=img)
-            lmain.imgtk = imgtk
-            lmain.configure(image=imgtk)
-        if root.winfo_exists():
-            lmain.after(10, show_frame)
+        try:
+            ret, frame = cam.read()
+            if ret:
+                cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+                img = Image.fromarray(cv2image)
+                imgtk = ImageTk.PhotoImage(image=img)
+                lmain.imgtk = imgtk
+                lmain.configure(image=imgtk)
+            if root.winfo_exists():
+                lmain.after(10, show_frame)
+        except Exception:
+            # Em caso de erro, apenas encerrar a atualização
+            pass
 
     cam = cv2.VideoCapture(0)
     root = ThemedTk(theme="equilux")
@@ -125,6 +196,31 @@ class Employee:
         self.setor = setor
         self.supervisor = supervisor
         self.records = []
+        
+        # Carregar registros do dia atual
+        self.load_today_records()
+
+    def load_today_records(self):
+        """Carrega os registros do dia atual para o funcionário"""
+        today = datetime.datetime.now().strftime("%d-%m-%Y")
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute("SELECT entrada, saida FROM horarios WHERE pin = ? AND data = ? ORDER BY id", 
+                    (self.pin, today))
+            results = c.fetchall()
+            
+            for entrada, saida in results:
+                if entrada:
+                    entrada_dt = datetime.datetime.strptime(f"{today} {entrada}", "%d-%m-%Y %H:%M:%S")
+                    self.records.append(entrada_dt)
+                if saida:
+                    saida_dt = datetime.datetime.strptime(f"{today} {saida}", "%d-%m-%Y %H:%M:%S")
+                    self.records.append(saida_dt)
+            
+            conn.close()
+        except sqlite3.Error as e:
+            print(f"Erro ao carregar registros do dia: {e}")
 
     def clock_in(self):
         now = datetime.datetime.now()
@@ -136,34 +232,70 @@ class Employee:
                 time.sleep(1)
 
     def analyze_records(self):
+        """Analisa os registros do funcionário do dia atual."""
         if len(self.records) == 2:
-            pass
+            # Cálculo do primeiro intervalo (Primeira entrada até primeira saída)
+            time_diff = (self.records[1] - self.records[0]).total_seconds() / 3600  # em horas
+            print(f"Primeiro período: {time_diff:.2f} horas")
         elif len(self.records) == 3:
-            pass
+            # Pode significar volta do almoço
+            time_diff = (self.records[1] - self.records[0]).total_seconds() / 3600  # em horas
+            print(f"Primeiro período: {time_diff:.2f} horas")
+            # Tempo de almoço/intervalo
+            break_time = (self.records[2] - self.records[1]).total_seconds() / 60  # em minutos
+            print(f"Tempo de intervalo: {break_time:.2f} minutos")
         elif len(self.records) == 4:
-            pass
+            # Dia completo de trabalho
+            first_period = (self.records[1] - self.records[0]).total_seconds() / 3600  # em horas
+            second_period = (self.records[3] - self.records[2]).total_seconds() / 3600  # em horas
+            total_time = first_period + second_period
+            
+            break_time = (self.records[2] - self.records[1]).total_seconds() / 60  # em minutos
+            
+            print(f"Primeiro período: {first_period:.2f} horas")
+            print(f"Intervalo: {break_time:.2f} minutos")
+            print(f"Segundo período: {second_period:.2f} horas")
+            print(f"Tempo total trabalhado: {total_time:.2f} horas")
+            
+            # Verificar se o tempo total está dentro do esperado (ex: 8 horas)
+            if 7.5 <= total_time <= 8.5:  # Tolerância de 30min
+                print("Jornada de trabalho completa.")
+            elif total_time < 7.5:
+                print("Jornada de trabalho inferior ao esperado.")
+            else:
+                print("Horas extras registradas.")
         else:
-            pass
+            # Primeiro registro do dia
+            print(f"Primeiro registro do dia às {self.records[0].strftime('%H:%M')}")
 
 def main():
     create_table()
     employees = {}
 
-    csv_path = 'data/people.csv'
-    if not os.path.exists(csv_path):
-        print(f"Arquivo {csv_path} não encontrado.")
+    # Verificar e carregar dados dos funcionários
+    try:
+        if not os.path.exists(PEOPLE_CSV_PATH):
+            messagebox.showerror("Erro", f"Arquivo {PEOPLE_CSV_PATH} não encontrado.")
+            return
+
+        with open(PEOPLE_CSV_PATH, mode='r', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                try:
+                    pin = row['pin']
+                    name = row['name']
+                    setor = row.get('setor', 'N/A')  # Usar get com valor padrão para campos opcionais
+                    supervisor = row.get('supervisor', 'N/A')
+                    employees[pin] = Employee(name, pin, setor, supervisor)
+                except KeyError as e:
+                    print(f"Erro ao processar linha do CSV: campo {e} ausente")
+    except Exception as e:
+        messagebox.showerror("Erro", f"Falha ao carregar dados dos funcionários: {e}")
         return
 
-    with open(csv_path, mode='r') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            pin = row['pin']
-            name = row['name']
-            setor = row['setor']
-            supervisor = row['supervisor']
-            employees[pin] = Employee(name, pin, setor, supervisor)
-
-    def signal_handler():
+    # Configurar tratamento de sinal para saída limpa
+    def signal_handler(sig, frame):
+        print("\nPrograma encerrado pelo usuário.")
         exit(0)
 
     signal.signal(signal.SIGINT, signal_handler)
