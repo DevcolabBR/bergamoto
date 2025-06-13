@@ -6,17 +6,38 @@
     ├── estrutura-project.py
     └── file_structure.txt
     auxiliares/
-        ├── 1-simulator.py
         ├── 2-create-df.py
         ├── 3-analise-parse.py
         ├── 4-tempo4-registros.py
         ├── 5-streamlit1.py
         ├── 5.1-streamlit2.py
         ├── pre-analise.py
+        ├── simulator.py
         └── trat-horario-falta.py
+        __pycache__/
+            └── simulator.cpython-312.pyc
+    bot/
+        ├── gestao-main.py
+        ├── notific-faltas.py
+        └── status_day.py
+    feature-store/
+        ├── faltas.py
+        ├── perfil-usuario.py
+        ├── tempo-trabalhado.py
+        ├── usuarios-menos-falta.py
+        └── variacoes-por-horario.py
+    inputs/
+        ├── consulta-metas.py
+        └── metas.py
     linux/
         ├── create-people.py
         └── main.py
+    tratamento-horarios-table/
+        └── turnos.py
     win/
         ├── create-people-win.py
         └── main-win.py
+    data/
+        ├── bergamoto.db
+        ├── horarios-ds.csv
+        └── people.csv
