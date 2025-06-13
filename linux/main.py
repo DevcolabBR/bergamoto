@@ -11,19 +11,28 @@ O sistema permite:
 4. Análise de períodos e intervalos de trabalho
 """
 
-import datetime
-import sqlite3
-import cv2
-import tkinter as tk
-from tkinter import messagebox, ttk
-from PIL import Image, ImageTk
-import signal
-import io
-import time
-import threading
-import csv
-import os
-from ttkthemes import ThemedTk
+# === Bibliotecas de Data e Hora ===
+import datetime  # Manipulação de datas e horários para registros de ponto e cálculos de horas trabalhadas
+import time      # Funções relacionadas com tempo para pausas e medição de intervalos
+
+# === Bibliotecas de Banco de Dados ===
+import sqlite3   # Interface para banco de dados SQLite, usado para armazenar registros de ponto
+
+# === Bibliotecas de Interface Gráfica ===
+import tkinter as tk                # Interface gráfica principal
+from tkinter import messagebox, ttk  # Caixas de diálogo e widgets temáticos
+from ttkthemes import ThemedTk       # Temas visuais modernos para a interface
+
+# === Bibliotecas de Processamento de Imagem ===
+import cv2                # OpenCV para captura de vídeo da webcam
+from PIL import Image, ImageTk  # Manipulação e exibição de imagens na interface
+
+# === Bibliotecas de Sistema ===
+import os        # Operações do sistema de arquivos (caminhos, diretórios)
+import signal    # Tratamento de sinais do sistema operacional (SIGINT, etc.)
+import threading # Multithreading para operações concorrentes
+import io        # Operações de entrada/saída em memória (para processamento de imagens)
+import csv       # Processamento de arquivos CSV (dados de funcionários)
 
 # Configuração de caminhos - define a localização dos arquivos no sistema
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
