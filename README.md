@@ -1,156 +1,276 @@
-# Bergamoto - Sistema de Registro de Ponto Eletrônico
+# Bergamoto - Sistema de Registro de Ponto Eletrônico v2.0
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.9+-blue.svg" alt="Python versão">
   <img src="https://img.shields.io/badge/SQLite-3.0-green.svg" alt="SQLite">
-  <img src="https://img.shields.io/badge/Status-Em_Desenvolvimento-yellow.svg" alt="Status">
+  <img src="https://img.shields.io/badge/Status-Refatorado-brightgreen.svg" alt="Status">
   <img src="https://img.shields.io/badge/Licença-MIT-red.svg" alt="Licença">
+  <img src="https://img.shields.io/badge/Versão-2.0.0-orange.svg" alt="Versão">
 </p>
 
 ## 📋 Sumário
 
 - [Sobre o Projeto](#-sobre-o-projeto)
+- [O Que Mudou na v2.0](#-o-que-mudou-na-v20)
 - [Recursos](#-recursos)
 - [Tecnologias Utilizadas](#-tecnologias-utilizadas)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [Instalação e Configuração](#-instalação-e-configuração)
-- [Como Usar](#-como-usar)
-- [Módulos Principais](#-módulos-principais)
-- [Requisitos Legais](#-requisitos-legais)
+- [Nova Estrutura do Projeto](#-nova-estrutura-do-projeto)
+- [Instalação Rápida](#-instalação-rápida)
+- [Uso da Aplicação](#-uso-da-aplicação)
+- [Documentação Técnica](#-documentação-técnica)
+- [Migração da v1.x](#-migração-da-v1x)
 - [Contribuições](#-contribuições)
 
 ## 🔍 Sobre o Projeto
 
 Bergamoto é um sistema completo de registro de ponto eletrônico desenvolvido para empresas que necessitam controlar a jornada de trabalho de seus colaboradores. O sistema oferece registro de entrada e saída, captura de foto para confirmação de identidade, cálculo automático de horas trabalhadas e diversas análises de períodos trabalhados.
 
-O projeto foi desenvolvido com ênfase na segurança, facilidade de uso e conformidade com as normas brasileiras de controle de ponto eletrônico.
+**Versão 2.0:** Completamente refatorado com arquitetura modular, melhor organização de código, sistema de configuração centralizado e suporte multiplataforma unificado.
+
+## 🚀 O Que Mudou na v2.0
+
+### ✅ Melhorias Implementadas
+
+- **🏗️ Arquitetura Modular**: Código organizado em módulos bem definidos
+- **🔧 Configuração Centralizada**: Sistema de configuração unificado com suporte a .env
+- **🗄️ Banco de Dados Padronizado**: Schema consistente com migrações automáticas
+- **📱 Interface Unificada**: Uma única aplicação que funciona em Linux, Windows e macOS
+- **📊 Sistema de Monitoramento**: Health checks e logging estruturado
+- **🔄 Código Reutilizável**: Eliminação de duplicação entre versões de SO
+- **⚙️ Setup Automatizado**: Script de configuração inicial simplificado
+
+### �️ Problemas Resolvidos
+
+- ~~Caminhos hardcoded específicos do desenvolvedor~~
+- ~~Duplicação de código entre `linux/main.py` e `win/main-win.py`~~
+- ~~Inconsistências no schema do banco de dados~~
+- ~~Falta de sistema de configuração~~
+- ~~Estrutura de projeto desorganizada~~
 
 ## 🚀 Recursos
 
-- **Registro de Ponto com Foto**: Captura a imagem do colaborador no momento do registro para confirmação de identidade
-- **Controle por PIN**: Identificação única por colaborador
-- **Análise de Jornada**: Cálculo automático de horas trabalhadas, intervalos e extras
-- **Interface Amigável**: Sistema GUI intuitivo para facilitar o uso
-- **Relatórios Gerenciais**: Análise de faltas, atrasos e horas trabalhadas
-- **Multiplataforma**: Versões para Linux e Windows
-- **Banco de Dados Seguro**: Armazenamento centralizado de todos os registros
+- **Registro de Ponto com Foto**: Captura automática de imagem para confirmação
+- **Controle por PIN**: Identificação única e segura por colaborador
+- **Interface Moderna**: UI responsiva com temas personalizáveis
+- **Banco de Dados Robusto**: SQLite com integridade e backups automáticos
+- **Relatórios Gerenciais**: Análise de horas, faltas e produtividade
+- **Multiplataforma**: Funciona nativamente em Linux, Windows e macOS
+- **Sistema de Logs**: Monitoramento completo e debugging facilitado
+- **Migração Automática**: Atualização seamless de versões anteriores
 
 ## 💻 Tecnologias Utilizadas
 
-- **Python**: Linguagem principal
-- **SQLite**: Banco de dados para armazenamento
-- **OpenCV**: Para captura e processamento de imagens
-- **Tkinter**: Interface gráfica com tema moderno
-- **Pandas**: Análise de dados e geração de relatórios
+### Obrigatórias
+- **Python 3.9+**: Linguagem principal
+- **SQLite 3**: Banco de dados embutido
+- **Tkinter**: Interface gráfica (incluído no Python)
 
-## 📂 Estrutura do Projeto
+### Opcionais (Funcionalidade Completa)
+- **OpenCV**: Captura e processamento de imagens
+- **Pillow**: Manipulação de imagens
+- **ttkthemes**: Temas modernos para interface
+- **pandas**: Análise de dados avançada
+
+## 📂 Nova Estrutura do Projeto
 
 ```
 bergamoto/
-├── auxiliares/           # Scripts auxiliares para processamento de dados
-│   ├── simulator.py      # Simulador de registros de ponto
-│   ├── pre-analise.py    # Ferramentas de pré-análise de dados
-│   └── ...
-├── bot/                  # Módulos de automação e notificação
-│   ├── notific-faltas.py # Sistema de notificação de faltas
-│   └── ...
-├── data/                 # Arquivos de dados
-│   ├── bergamoto.db      # Banco de dados SQLite
-│   └── people.csv        # Cadastro de colaboradores
-├── feature-store/        # Módulos de análise avançada
-│   ├── faltas.py         # Análise de faltas
-│   └── tempo-trabalhado.py # Análise de horas trabalhadas
-├── linux/                # Versão do sistema para Linux
-│   └── main.py           # Aplicação principal (Linux)
-├── win/                  # Versão do sistema para Windows
-│   └── main-win.py       # Aplicação principal (Windows)
-├── estrutura-project.py  # Script para gerar estrutura de arquivos
-└── README.md             # Este arquivo
+├── main.py                    # 🎯 Ponto de entrada único
+├── setup.py                   # ⚙️ Script de configuração
+├── requirements.txt           # 📦 Dependências
+├── README.md                 # 📖 Esta documentação
+│
+├── src/bergamoto/            # 🏗️ Código principal
+│   ├── core/                 # 💼 Lógica de negócio
+│   │   ├── employee.py       # 👤 Gestão de funcionários
+│   │   ├── timesheet.py      # ⏰ Registro de ponto
+│   │   └── main_app.py       # 🖥️ Aplicação principal
+│   │
+│   ├── database/             # 🗄️ Camada de dados
+│   │   ├── manager.py        # 🔧 Gerenciador do BD
+│   │   ├── models.py         # 📋 Modelos de dados
+│   │   └── schemas.py        # 🏛️ Estrutura do BD
+│   │
+│   └── utils/                # 🛠️ Utilitários
+│       ├── logger.py         # 📝 Sistema de logs
+│       ├── camera.py         # 📷 Captura de fotos
+│       └── monitoring.py     # 📊 Health checks
+│
+├── config/                   # ⚙️ Configurações
+│   ├── settings.py           # 🔧 Configurações centrais
+│   └── .env.example          # 📄 Exemplo de ambiente
+│
+├── scripts/                  # 🔄 Scripts utilitários
+│   └── migrate_database.py   # 🔄 Migração do BD
+│
+├── analysis/                 # 📈 Análises (antigo feature-store)
+├── data/                     # 💾 Dados da aplicação
+├── logs/                     # 📋 Arquivos de log
+└── tests/                    # 🧪 Testes automatizados
 ```
 
-## 🔧 Instalação e Configuração
+## ⚡ Instalação Rápida
 
-### Pré-requisitos
-
-- Python 3.9 ou superior
-- Pacotes necessários: tkinter, opencv-python, pillow, pandas, ttkthemes
-
-### Instalação
-
-1. Clone este repositório:
-   ```bash
-   git clone https://github.com/seu-usuario/bergamoto.git
-   cd bergamoto
-   ```
-
-2. Instale as dependências:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. Configure o banco de dados:
-   ```bash
-   # No Linux
-   python linux/create-people.py
-   
-   # No Windows
-   python win/create-people-win.py
-   ```
-
-## 🖱️ Como Usar
-
-### Executando o Sistema
-
-#### No Linux:
+### 1. Clone o Repositório
 ```bash
-python linux/main.py
+git clone https://github.com/DevcolabBR/bergamoto.git
+cd bergamoto
 ```
 
-#### No Windows:
+### 2. Execute o Setup Automático
 ```bash
-python win/main-win.py
+python setup.py
 ```
+
+O script irá:
+- ✅ Criar diretórios necessários
+- ✅ Configurar arquivo de ambiente
+- ✅ Instalar dependências (opcional)
+- ✅ Migrar/criar banco de dados
+- ✅ Criar funcionários de exemplo (opcional)
+
+### 3. Execute a Aplicação
+```bash
+python main.py
+```
+
+## 🖱️ Uso da Aplicação
+
+### Primeiro Acesso
+1. Execute `python setup.py` para configuração inicial
+2. Aceite criar funcionários de exemplo quando perguntado
+3. Execute `python main.py` para iniciar
 
 ### Registrando Ponto
-
 1. Digite seu PIN na tela inicial
-2. Confirme sua identidade na tela seguinte
-3. Aguarde a captura da foto (automática ou clique no botão)
-4. Seu ponto será registrado automaticamente como entrada ou saída
+2. Confirme sua identidade
+3. Aguarde a captura automática da foto (3 segundos)
+4. Seu ponto será registrado automaticamente
 
-### Encerrando o Sistema
+### Funcionalidades Especiais
+- **Encerrar Sistema**: Digite `----` no campo PIN
+- **Ver Logs**: `tail -f logs/bergamoto.log`
+- **Health Check**: Execute diagnósticos do sistema
 
-Digite `----` (quatro hífens) na tela de PIN para encerrar o programa.
+## � Documentação Técnica
 
-## 📊 Módulos Principais
+### Arquitetura
 
-### Sistema de Ponto (main.py)
-Módulo principal que gerencia a interface de registro de ponto, captura de fotos e armazenamento de dados.
+O sistema segue uma arquitetura em camadas:
 
-### Análise de Dados (feature-store/)
-Ferramentas para análise de jornada de trabalho, detecção de faltas e cálculo de horas extras.
+```
+┌─────────────────┐
+│   Interface     │  ← main.py, UI components
+├─────────────────┤
+│   Core Logic    │  ← Business rules, services
+├─────────────────┤
+│   Database      │  ← Data layer, models
+├─────────────────┤
+│   Utils         │  ← Logging, monitoring, tools
+└─────────────────┘
+```
 
-### Notificações (bot/)
-Sistema de alerta para faltas, atrasos ou outros eventos relevantes.
+### APIs Principais
 
-## 📜 Requisitos Legais
+#### EmployeeService
+```python
+from bergamoto.core import EmployeeService
 
-No Brasil, sistemas de ponto eletrônico devem estar em conformidade com:
-- Portaria 671/2021 do Ministério do Trabalho
-- Normas técnicas do Inmetro
+# Criar funcionário
+service.create_employee("1234", "João Silva", "vendas", "Maria Santos")
 
-Este sistema foi desenvolvido considerando estes requisitos, mas recomenda-se verificar a conformidade com a legislação atual antes da implantação em ambiente de produção.
+# Buscar por PIN
+employee = service.get_employee_by_pin("1234")
+```
+
+#### TimesheetService
+```python
+from bergamoto.core import TimesheetService
+
+# Registrar ponto
+success, message = service.clock_in(employee)
+
+# Obter resumo do dia
+summary = service.get_daily_summary(employee.id, "26-09-2025")
+```
+
+### Configuração
+
+Arquivo `.env`:
+```env
+DB_NAME=bergamoto.db
+UI_THEME=equilux
+UI_FULLSCREEN=true
+LOG_LEVEL=INFO
+```
+
+## � Migração da v1.x
+
+Se você tem uma versão anterior instalada:
+
+1. **Backup dos dados existentes**
+2. **Execute o novo setup**: `python setup.py`
+3. **A migração é automática**: Dados serão preservados
+4. **Arquivos antigos podem ser removidos**:
+   - `linux/main.py`
+   - `win/main-win.py`
+   - Scripts duplicados em `auxiliares/`
+
+## 📊 Análises e Relatórios
+
+Os scripts de análise foram mantidos no diretório `analysis/` para compatibilidade. Eles serão integrados à interface principal em versões futuras.
+
+### Análises Disponíveis:
+- **Horas trabalhadas por funcionário**
+- **Análise de faltas e atrasos**
+- **Variações de horário**
+- **Produtividade por setor**
+
+## 🧪 Testes
+
+```bash
+# Instalar dependências de teste
+pip install pytest
+
+# Executar testes
+python -m pytest tests/
+
+# Com cobertura
+python -m pytest --cov=src tests/
+```
 
 ## 🤝 Contribuições
 
-Contribuições são bem-vindas! Para contribuir:
+Contribuições são bem-vindas! A nova arquitetura facilita muito o desenvolvimento.
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-funcionalidade`)
-3. Faça commit das alterações (`git commit -m 'Adiciona nova funcionalidade'`)
-4. Faça push para a branch (`git push origin feature/nova-funcionalidade`)
-5. Abra um Pull Request
+### Processo:
+1. Fork o projeto
+2. Crie uma branch: `git checkout -b feature/nova-funcionalidade`
+3. Faça suas alterações
+4. Execute os testes: `python -m pytest`
+5. Commit: `git commit -m 'Adiciona nova funcionalidade'`
+6. Push: `git push origin feature/nova-funcionalidade`
+7. Abra um Pull Request
+
+### Áreas que Precisam de Ajuda:
+- 🧪 Testes automatizados
+- 📱 Interface mobile/web
+- 🌐 API REST
+- 📊 Dashboard de análises
+- 🔐 Autenticação avançada
+
+## 📜 Licença
+
+MIT License - veja [LICENSE](LICENSE) para detalhes.
+
+## 🏆 Créditos
+
+- **Desenvolvimento Original**: DevcolabBR
+- **Refatoração v2.0**: GitHub Copilot + DevcolabBR
+- **Comunidade**: Contribuidores do projeto
 
 ---
 
-Desenvolvido por DevcolabBR © 2025
+**📧 Contato**: [DevcolabBR](https://github.com/DevcolabBR)  
+**🐛 Issues**: [GitHub Issues](https://github.com/DevcolabBR/bergamoto/issues)  
+**📖 Wiki**: [Documentação Completa](https://github.com/DevcolabBR/bergamoto/wiki)
